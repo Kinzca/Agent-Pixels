@@ -105,6 +105,7 @@ const styles = {
     cursor: "pointer",
     font: "inherit",
     fontSize: "12px",
+    whiteSpace: "nowrap",
   } as React.CSSProperties,
   cameraTabActive: {
     background: "rgba(255,255,255,0.16)",
@@ -255,7 +256,7 @@ export function AgentPixelsCameraPage() {
           >
             Characters
           </button>
-          <div style={{ fontSize: "12px", opacity: 0.7 }}>{error ? "读取失败" : stale ? "等待新数据" : loading ? "同步中" : "实时 · 2.5 秒"}</div>
+          <div style={{ fontSize: "12px", opacity: 0.7, minWidth: 84, textAlign: "right", flexShrink: 0 }}>{error ? "读取失败" : stale ? (loading && !data ? "首次连接中" : "等待新数据") : "实时 · 2.5 秒"}</div>
         </div>
       </header>
 

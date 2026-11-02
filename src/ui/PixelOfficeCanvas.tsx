@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { TILE_SIZE } from "../office/types.js";
 import { OfficeState } from "../office/engine/officeState.js";
 import { startGameLoop } from "../office/engine/gameLoop.js";
@@ -38,6 +38,11 @@ export function PixelOfficeCanvas({ agents, camera }: PixelOfficeCanvasProps) {
     () => new Map(agents.map((agent) => [stableNumericId(agent.id), agent] as const)),
     [agents],
   );
+  // 数据刷新只更新绘制输入，保持同一个动画循环和人物位置。
+  const renderStateRef = useRef({ agentMeta, camera });
+  useLayoutEffect(() => {
+    renderStateRef.current = { agentMeta, camera };
+  }, [agentMeta, camera]);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,8 +102,11 @@ export function PixelOfficeCanvas({ agents, camera }: PixelOfficeCanvasProps) {
     function resize() {
       const rect = activeWrap.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      activeCanvas.width = Math.max(1, Math.round(rect.width * dpr));
-      activeCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+      const width = Math.max(1, Math.round(rect.width * dpr));
+      const height = Math.max(1, Math.round(rect.height * dpr));
+      // 即使值不变，给 width/height 赋值也会清空画布。
+      if (activeCanvas.width !== width) activeCanvas.width = width;
+      if (activeCanvas.height !== height) activeCanvas.height = height;
       activeCanvas.style.width = `${rect.width}px`;
       activeCanvas.style.height = `${rect.height}px`;
     }
@@ -111,7 +119,7 @@ export function PixelOfficeCanvas({ agents, camera }: PixelOfficeCanvasProps) {
       update: (dt) => office.update(dt),
       render: (ctx) => {
         const layout = office.getLayout();
-        const focus = cameraBounds[camera];
+        const focus = cameraBounds[renderStateRef.current.camera];
         const dpr = window.devicePixelRatio || 1;
         const fitZoom = Math.min(
           canvas.width / (focus.cols * TILE_SIZE),
@@ -156,7 +164,7 @@ export function PixelOfficeCanvas({ agents, camera }: PixelOfficeCanvasProps) {
         ctx.strokeStyle = "#000";
         ctx.lineWidth = Math.max(2, zoom);
         for (const character of office.characters.values()) {
-          const meta = agentMeta.get(character.id);
+          const meta = renderStateRef.current.agentMeta.get(character.id);
           const name = meta ? `${meta.name} · ${meta.workflowLabel ?? meta.status ?? ""}` : null;
           if (!name) continue;
           const x = offsetX + character.x * zoom;
@@ -172,7 +180,7 @@ export function PixelOfficeCanvas({ agents, camera }: PixelOfficeCanvasProps) {
       observer.disconnect();
       stop();
     };
-  }, [agentMeta, camera, ready]);
+  }, [ready]);
 
   return (
     <div ref={wrapRef} style={{ position: "relative", width: "100%", height: "100%" }}>

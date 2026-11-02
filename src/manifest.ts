@@ -1,7 +1,7 @@
 import type { PaperclipPluginManifestV1 } from "@paperclipai/plugin-sdk";
 
 export const PLUGIN_ID = "agent-pixels.compat";
-export const PLUGIN_VERSION = "0.2.0";
+export const PLUGIN_VERSION = "0.2.1";
 export const PAGE_ROUTE = "agent-pixels-compat";
 
 export const SLOT_IDS = {

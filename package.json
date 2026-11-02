@@ -1,6 +1,6 @@
 {
   "name": "@agent-pixels/paperclip-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Security camera style pixel office plugin for Paperclip",
   "type": "module",
   "private": true,
@@ -21,6 +21,7 @@
     "@types/react": "^19.0.8",
     "esbuild": "^0.27.3",
     "react": "^19.0.0",
+    "react-test-renderer": "19.2.5",
     "typescript": "^5.7.3"
   },
   "peerDependencies": {
