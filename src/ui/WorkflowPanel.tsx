@@ -18,6 +18,40 @@ const time = (value?: string | null) => value ? new Date(value).toLocaleTimeStri
 
 export { WorkflowTaskPicker } from './TaskPicker.js';
 
+function decisionLabel(decision?: string | null) {
+  return decision === 'approved' ? '批准' : decision === 'changes_requested' ? '要求返修' : decision ?? '尚无审查决策';
+}
+
+export function WorkflowSummary({ data, companyPrefix, error, stale }: {
+  data: WorkflowSnapshot | null; companyPrefix: string | null; error: string | null; stale: boolean;
+}) {
+  const task = data?.selected;
+  if (!task) return <section className="ap-office-summary ap-office-summary-empty" aria-label="当前任务摘要">
+    {error ? '当前任务读取失败，请等待重新同步。' : data ? '当前暂无可核查任务。' : '正在读取当前任务…'}
+  </section>;
+  const root = companyPrefix ? `/${encodeURIComponent(companyPrefix)}` : '';
+  const href = `${root}/issues/${encodeURIComponent(task.identifier ?? task.id)}`;
+  const actor = task.workflow.actorId;
+  const owner = actor ? data?.agents.find(agent => agent.id === actor)?.name ?? '其他参与者'
+    : ['approved', 'completed'].includes(task.workflow.phase) ? '本轮已结束'
+    : task.workflow.phase === 'cancelled' ? '任务已取消' : '待确认';
+  return <section className="ap-office-summary" aria-label="当前任务摘要">
+    <dl className="ap-office-summary-grid">
+      <div className="ap-office-summary-task">
+        <dt>当前任务</dt>
+        <dd><a className="ap-office-task-ref" href={href} target="_blank" rel="noreferrer">{task.identifier ?? '原始任务'} ↗</a><span className="ap-office-summary-title" title={task.title}>{task.title}</span></dd>
+      </div>
+      <div>
+        <dt>当前阶段</dt>
+        <dd><strong className="ap-office-summary-phase">{task.workflow.label}</strong><span className="ap-office-summary-detail">{activities[task.workflow.activity] ?? task.workflow.activity}</span></dd>
+      </div>
+      <div><dt>负责人</dt><dd>{owner}</dd></div>
+      <div><dt>最近审查决策</dt><dd>{decisionLabel(task.workflow.decision)}<span className="ap-office-summary-detail">来自任务审查状态</span></dd></div>
+    </dl>
+    {error || stale ? <p className="ap-office-summary-warning">{error ? '同步读取失败，当前显示为上次读取的任务状态。' : '数据尚未更新，当前显示为上次读取的任务状态。'}</p> : null}
+  </section>;
+}
+
 export function WorkflowPanel({ data, companyPrefix, error, stale }: {
   data: WorkflowSnapshot | null; companyPrefix: string | null; error: string | null; stale: boolean;
 }) {
@@ -25,8 +59,6 @@ export function WorkflowPanel({ data, companyPrefix, error, stale }: {
   const root = companyPrefix ? `/${encodeURIComponent(companyPrefix)}` : '';
   const taskHref = task ? `${root}/issues/${encodeURIComponent(task.identifier ?? task.id)}` : '#';
   const name = (id?: string | null) => data?.agents.find(a => a.id === id)?.name ?? (id ? '其他参与者' : '—');
-  const decision = task?.workflow.decision;
-  const decisionText = decision === 'approved' ? '批准' : decision === 'changes_requested' ? '要求返修' : decision ?? '尚无';
 
   return <aside className="ap-office-inspector" aria-label="真实任务流程">
     <header className="ap-office-panel-head">
@@ -35,20 +67,10 @@ export function WorkflowPanel({ data, companyPrefix, error, stale }: {
     </header>
     {task ? <>
       <div className="ap-office-panel-body">
-        <p className="ap-office-task-title">{task.title}</p>
-        <div className="ap-office-state-line">
-          <strong className="ap-office-state-label">{task.workflow.label}</strong>
-          {decision === 'approved' ? <span className="ap-office-badge" data-tone="success"><span className="ap-office-dot" aria-hidden="true" />已批准</span> : null}
-        </div>
+        <div className="ap-office-section-title">流程阶段 <span>当前阶段高亮</span></div>
         <div className="ap-office-stages" aria-label="当前执行阶段">
           {phases.map(([key, label]) => <span key={key} className="ap-office-stage" aria-current={task.workflow.phase === key ? 'step' : undefined}>{label}</span>)}
         </div>
-        <dl className="ap-office-facts">
-          <div><dt>运行情况</dt><dd>{activities[task.workflow.activity] ?? task.workflow.activity}</dd></div>
-          <div><dt>当前负责人</dt><dd>{name(task.workflow.actorId)}</dd></div>
-          <div><dt>最近决策</dt><dd>{decisionText}</dd></div>
-        </dl>
-        <hr className="ap-office-divider" />
         <div className="ap-office-section-title">Agent <span>{data?.agents.length ?? 0} 位成员</span></div>
         {data?.agents.map(agent => <div key={agent.id} className="ap-office-agent" title={`宿主状态：${agent.status ?? '未知'}`}>
           <span className="ap-office-avatar" aria-hidden="true">{Array.from(agent.name)[0]}</span>
@@ -59,7 +81,11 @@ export function WorkflowPanel({ data, companyPrefix, error, stale }: {
       <details className="ap-office-records">
         <summary>真实运行与提交记录 · {task.runs.length} 次运行</summary>
         <div className="ap-office-record-content">
-          <p className="ap-office-caption">运行结束与审查批准分别记录。转交时旧运行可能被停止，最终结果以任务决策为准。</p>
+          <div className="ap-office-record-context">
+            <strong>当前任务状态：{task.workflow.label}</strong>
+            <p className="ap-office-caption">最近审查决策：{decisionLabel(task.workflow.decision)}。依据为任务审查状态。</p>
+          </div>
+          <p className="ap-office-caption">以下运行与提交保留历史过程，可能包含此前的退回意见。运行结束与审查批准分别记录，原文标题不代表当前结论。</p>
           <ol className="ap-office-runs">
             {task.runs.map(run => <li key={run.id} className="ap-office-run">
               <div className="ap-office-run-top">
@@ -72,9 +98,7 @@ export function WorkflowPanel({ data, companyPrefix, error, stale }: {
           </ol>
           <div className="ap-office-section-title">提交原文 <span>最近 {task.comments.length} 条</span></div>
           {task.comments.map(comment => <details key={comment.id} className="ap-office-comment">
-            <summary>{name(comment.authorAgentId)} · {time(comment.createdAt)}
-              <span className="ap-office-comment-title">{comment.body.split('\n').find(line => line.trim())?.slice(0, 100)}</span>
-            </summary>
+            <summary><span>{name(comment.authorAgentId)} · {time(comment.createdAt)}</span><span className="ap-office-comment-origin">原文（含历史）</span></summary>
             <div className="ap-office-comment-body">{comment.body}</div>
           </details>)}
           <a className="ap-office-record-link ap-office-caption" href={taskHref} target="_blank" rel="noreferrer">打开完整任务与审查记录 ↗</a>

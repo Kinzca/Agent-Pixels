@@ -1,6 +1,6 @@
 {
   "name": "@agent-pixels/paperclip-plugin",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Security camera style pixel office plugin for Paperclip",
   "type": "module",
   "private": true,

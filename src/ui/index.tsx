@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useHostContext, usePluginData, type PluginSettingsPageProps, type PluginSidebarProps } from "@paperclipai/plugin-sdk/ui";
-import { WorkflowPanel, WorkflowTaskPicker, type WorkflowSnapshot } from "./WorkflowPanel.js";
+import { WorkflowPanel, WorkflowSummary, WorkflowTaskPicker, type WorkflowSnapshot } from "./WorkflowPanel.js";
 import { OFFICE_STYLES } from "./officeStyles.js";
 import { PAGE_ROUTE } from "../manifest.js";
 import { PixelOfficeCanvas } from "./PixelOfficeCanvas.js";
@@ -145,6 +145,7 @@ export function AgentPixelsCameraPage() {
       <div className="ap-office-toolbar">
         <WorkflowTaskPicker key={companyId ?? "instance"} data={data} issueId={issueId} onSelect={setIssueId} />
       </div>
+      <WorkflowSummary data={data} companyPrefix={companyPrefix} error={error?.message ?? null} stale={stale} />
       <div className="ap-office-workspace">
         <section className="ap-office-scene" aria-label="办公室现场">
           <header className="ap-office-scene-head">
@@ -159,7 +160,7 @@ export function AgentPixelsCameraPage() {
           {view === 'characters' ? <CharacterAssignmentsPanel companyId={companyId ?? null} assignments={assignments} onAssignmentsChange={setAssignments} /> : <div className="ap-office-camera" aria-label="Agent Pixels office camera">
             <PixelOfficeCanvas camera={camera} agents={agents} />
           </div>}
-          <footer className="ap-office-scene-foot"><span>{agents.length} 位 Agent · {view === 'characters' ? '角色分配' : '团队现场'}</span><span>任务状态见流程核查</span></footer>
+          <footer className="ap-office-scene-foot"><span>{agents.length} 位 Agent · {view === 'characters' ? '角色分配' : '团队现场'}</span><span>当前任务状态见上方摘要</span></footer>
         </section>
         <WorkflowPanel data={data} companyPrefix={companyPrefix} error={error?.message ?? null} stale={stale} />
       </div>
