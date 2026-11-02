@@ -175,7 +175,7 @@ export function PixelOfficeCanvas({ agents, camera }: PixelOfficeCanvasProps) {
   }, [agentMeta, camera, ready]);
 
   return (
-    <div ref={wrapRef} style={{ position: "relative", width: "100%", height: "min(725px, calc(100vh - 185px))", minHeight: "520px" }}>
+    <div ref={wrapRef} style={{ position: "relative", width: "100%", height: "100%" }}>
       {!ready && (
         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
           {loadError ? `Camera failed: ${loadError}` : "Loading camera..."}
