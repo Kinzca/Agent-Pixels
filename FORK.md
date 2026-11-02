@@ -75,3 +75,9 @@ pnpm build
 移除页面内重复的 Office 标题、Agent Pixels 徽标及说明文字，沿用宿主面包屑定位。自动刷新状态和最后读取时间移到任务选择工具栏右侧，窄屏时换行。任务摘要、办公室、流程面板、自动刷新和阶段判断保持原有实现。
 
 插件的侧栏分组由 [Kinzca/paperclip 的 codex-local 分支](https://github.com/Kinzca/paperclip/tree/codex-local) 提供；原版宿主仍按其原有插槽布局展示。按用户要求，此版本只构建和部署，不运行测试、类型检查、代码审查、机械设计检测或浏览器验收，等待用户检查。
+
+## 0.3.4：接入宿主原生侧栏入口（待用户验收）
+
+在 sidebar 声明中添加 `navigation: { routePath: "agent-pixels-compat", icon: "building-2" }`。定制 Paperclip 宿主直接用原生 SidebarNavItem 绘制入口，共享尺寸、缩进、移动端行为和选中状态；原 sidebar React 导出保留作为兼容入口。办公室、自动刷新、任务阶段及防闪烁逻辑没有改动。
+
+此版本与 Paperclip Fork 的侧栏导航元数据扩展配套部署；使用带该规范的宿主安装，不单独安装到尚未适配的旧宿主。只构建部署，未执行测试、类型检查、设计检测或浏览器验收。

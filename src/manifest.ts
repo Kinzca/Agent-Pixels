@@ -1,7 +1,7 @@
 import type { PaperclipPluginManifestV1 } from "@paperclipai/plugin-sdk";
 
 export const PLUGIN_ID = "agent-pixels.compat";
-export const PLUGIN_VERSION = "0.3.3";
+export const PLUGIN_VERSION = "0.3.4";
 export const PAGE_ROUTE = "agent-pixels-compat";
 
 export const SLOT_IDS = {
@@ -43,6 +43,7 @@ const manifest: PaperclipPluginManifestV1 = {
       {
         type: "sidebar",
         id: SLOT_IDS.sidebar,
+        navigation: { routePath: PAGE_ROUTE, icon: "building-2" },
         displayName: "Office",
         exportName: EXPORT_NAMES.sidebar,
       },
