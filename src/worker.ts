@@ -56,7 +56,7 @@ const plugin = definePlugin({
           const working = workflow?.actorId === agent.id && workflow.activity === 'running';
           return { id: agent.id, name: agent.name, status: agent.status, urlKey: agent.urlKey,
             activityKind: working ? (['review', 'rereview'].includes(workflow!.phase) ? 'research' : 'coding') : 'idle',
-            workflowLabel: workflow?.actorId === agent.id ? workflow.label : agent.status === 'running' ? '其他任务运行中' : '空闲',
+            workflowLabel: workflow?.actorId === agent.id ? workflow.label : runs.some(run => run.agentId === agent.id && run.status === 'running') ? '上一阶段运行收尾中' : agent.status === 'running' ? '宿主运行中' : '空闲',
           };
         }),
       };
