@@ -130,20 +130,14 @@ export function AgentPixelsCameraPage() {
   const roomName = camera === 'office' ? '办公室与休息区' : camera === 'boardroomKitchen' ? '会议室与茶水间' : '扩展办公室';
 
   return (
-    <main ref={pageRef} className="ap-office">
+    <main ref={pageRef} className="ap-office" aria-label="Office">
       <style>{OFFICE_STYLES}</style>
-      <header className="ap-office-heading">
-        <div>
-          <div className="ap-office-title-row"><h1>Office</h1><span className="ap-office-brand">Agent Pixels</span></div>
-          <p className="ap-office-subtitle">查看团队现场，核查任务的执行与审查。</p>
-        </div>
+      <div className="ap-office-toolbar">
+        <WorkflowTaskPicker key={companyId ?? "instance"} data={data} issueId={issueId} onSelect={setIssueId} />
         <div className="ap-office-sync" data-tone={error || stale ? 'warning' : 'ok'}>
           <span className="ap-office-dot" aria-hidden="true" />{syncLabel}
           <time dateTime={data?.observedAt}>上次读取 {readTime}</time>
         </div>
-      </header>
-      <div className="ap-office-toolbar">
-        <WorkflowTaskPicker key={companyId ?? "instance"} data={data} issueId={issueId} onSelect={setIssueId} />
       </div>
       <WorkflowSummary data={data} companyPrefix={companyPrefix} error={error?.message ?? null} stale={stale} />
       <div className="ap-office-workspace">
