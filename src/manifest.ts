@@ -1,8 +1,8 @@
 import type { PaperclipPluginManifestV1 } from "@paperclipai/plugin-sdk";
 
-export const PLUGIN_ID = "agent-pixels.camera";
-export const PLUGIN_VERSION = "0.1.0";
-export const PAGE_ROUTE = "agent-pixels";
+export const PLUGIN_ID = "agent-pixels.compat";
+export const PLUGIN_VERSION = "0.2.0";
+export const PAGE_ROUTE = "agent-pixels-compat";
 
 export const SLOT_IDS = {
   sidebar: "agent-pixels-sidebar",
@@ -20,13 +20,16 @@ const manifest: PaperclipPluginManifestV1 = {
   id: PLUGIN_ID,
   apiVersion: 1,
   version: PLUGIN_VERSION,
-  displayName: "Agent Pixels",
+  displayName: "Agent Pixels · 流程核查",
   description: "Security camera style pixel office view for Paperclip companies.",
   author: "Garratt Campton",
   categories: ["ui"],
   capabilities: [
     "companies.read",
     "agents.read",
+    "issues.read",
+    "issues.orchestration.read",
+    "issue.comments.read",
     "instance.settings.register",
     "ui.sidebar.register",
     "ui.page.register",
@@ -40,13 +43,13 @@ const manifest: PaperclipPluginManifestV1 = {
       {
         type: "sidebar",
         id: SLOT_IDS.sidebar,
-        displayName: "Agent Pixels",
+        displayName: "Agent Pixels · 流程核查",
         exportName: EXPORT_NAMES.sidebar,
       },
       {
         type: "page",
         id: SLOT_IDS.page,
-        displayName: "Agent Pixels",
+        displayName: "Agent Pixels · 流程核查",
         exportName: EXPORT_NAMES.page,
         routePath: PAGE_ROUTE,
       },

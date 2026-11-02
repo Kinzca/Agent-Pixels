@@ -1,6 +1,6 @@
 {
   "name": "@agent-pixels/paperclip-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Security camera style pixel office plugin for Paperclip",
   "type": "module",
   "private": true,
@@ -13,7 +13,8 @@
     "build": "node build.mjs",
     "clean": "rm -rf dist",
     "package:release": "node scripts/package-release.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "node scripts/typecheck.mjs",
+    "test": "node --experimental-strip-types --test test/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

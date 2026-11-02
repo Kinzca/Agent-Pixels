@@ -1,3 +1,5 @@
+> 本仓库为 Agent Pixels 的流程核查 fork，新增自动刷新及真实执行 / 审查 / 返修 / 复审状态，保留上游像素办公室与作者信息。安装、兼容修复、权限与验证说明见 [中文 Fork 说明](FORK.md)。
+
 # Agent Pixels
 
 ![Agent Pixels logo banner](public/assets/brand/agent-pixels-logo-banner.jpg)

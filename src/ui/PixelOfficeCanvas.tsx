@@ -11,6 +11,7 @@ export type CameraAgent = {
   status?: string | null;
   activityKind?: "coding" | "research" | "writing" | "meeting" | "idle";
   characterIndex?: number;
+  workflowLabel?: string;
 };
 
 type PixelOfficeCanvasProps = {
@@ -155,7 +156,8 @@ export function PixelOfficeCanvas({ agents, camera }: PixelOfficeCanvasProps) {
         ctx.strokeStyle = "#000";
         ctx.lineWidth = Math.max(2, zoom);
         for (const character of office.characters.values()) {
-          const name = agentMeta.get(character.id)?.name;
+          const meta = agentMeta.get(character.id);
+          const name = meta ? `${meta.name} · ${meta.workflowLabel ?? meta.status ?? ""}` : null;
           if (!name) continue;
           const x = offsetX + character.x * zoom;
           const y = offsetY + (character.y + 8) * zoom;

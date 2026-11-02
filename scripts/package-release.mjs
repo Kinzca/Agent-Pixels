@@ -24,6 +24,7 @@ await mkdir(packageDir, { recursive: true });
 
 await cp(path.join(root, "package.json"), path.join(packageDir, "package.json"));
 await cp(path.join(root, "README.md"), path.join(packageDir, "README.md"));
+await cp(path.join(root, "FORK.md"), path.join(packageDir, "FORK.md"));
 await cp(path.join(root, "dist"), path.join(packageDir, "dist"), { recursive: true });
 
 const result = spawnSync("zip", ["-qr", zipName, folderName], {

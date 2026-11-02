@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useHostContext, usePluginData, type PluginSettingsPageProps, type PluginSidebarProps } from "@paperclipai/plugin-sdk/ui";
+import { WorkflowPanel, type WorkflowSnapshot } from "./WorkflowPanel.js";
 import { PAGE_ROUTE } from "../manifest.js";
 import { PixelOfficeCanvas } from "./PixelOfficeCanvas.js";
 import { getPluginAssetBaseUrl, type AssetIndex } from "./pixelAssets.js";
 
-type CameraRoomData = {
+type CameraRoomData = WorkflowSnapshot & {
+  companyId: string;
+  observedAt: string;
   room: string;
   agents: Array<{
     id: string;
@@ -13,6 +16,7 @@ type CameraRoomData = {
     urlKey?: string | null;
     activityKind?: "coding" | "research" | "writing" | "meeting" | "idle";
     characterIndex?: number;
+    workflowLabel?: string;
   }>;
 };
 
@@ -109,8 +113,8 @@ const styles = {
   camera: {
     position: "relative",
     overflow: "hidden",
-    height: "min(725px, calc(100vh - 185px))",
-    minHeight: "520px",
+    height: "min(600px, calc(100vh - 400px))",
+    minHeight: "360px",
     border: "1px solid rgba(255,255,255,0.14)",
     background: "#1f2937",
     imageRendering: "pixelated",
@@ -153,8 +157,25 @@ export function AgentPixelsSidebarLink({ context }: PluginSidebarProps) {
 
 export function AgentPixelsCameraPage() {
   const pageRef = useRef<HTMLElement>(null);
-  const { companyId } = useHostContext();
-  const { data, loading, error } = usePluginData<CameraRoomData>("camera-room", { companyId });
+  const { companyId, companyPrefix } = useHostContext();
+  const [issueId, setIssueId] = useState('');
+  const { data: response, loading, error, refresh } = usePluginData<CameraRoomData>('camera-room', { companyId, issueId });
+  const data = response?.companyId === companyId && (!issueId || response.selected?.id === issueId) ? response : null;
+  const [clock, setClock] = useState(Date.now());
+  const busy = useRef(loading);
+  busy.current = loading;
+  useEffect(() => { setIssueId(''); }, [companyId]);
+  useEffect(() => {
+    const tick = () => {
+      setClock(Date.now());
+      if (!document.hidden && !busy.current) { busy.current = true; refresh(); }
+    };
+    const timer = window.setInterval(tick, 2500);
+    const visible = () => { if (!document.hidden) tick(); };
+    document.addEventListener('visibilitychange', visible);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', visible); };
+  }, [companyId, issueId, refresh]);
+  const stale = !data || clock - Date.parse(data.observedAt) > 12000;
   const [assignments, setAssignments] = useState<Record<string, number>>(() => readStoredAssignments(companyId ?? null));
   const agents = useMemo(
     () => (data?.agents ?? []).map((agent) => ({ ...agent, characterIndex: assignments[agent.id] })),
@@ -234,10 +255,11 @@ export function AgentPixelsCameraPage() {
           >
             Characters
           </button>
-          <div style={{ fontSize: "12px", opacity: 0.7 }}>{loading ? "Connecting" : error ? "Offline" : "Live"}</div>
+          <div style={{ fontSize: "12px", opacity: 0.7 }}>{error ? "读取失败" : stale ? "等待新数据" : loading ? "同步中" : "实时 · 2.5 秒"}</div>
         </div>
       </header>
 
+      <WorkflowPanel data={data} companyPrefix={companyPrefix} issueId={issueId} onSelect={setIssueId} error={error?.message ?? null} stale={stale} />
       {view === "characters" ? (
         <CharacterAssignmentsPanel companyId={companyId ?? null} assignments={assignments} onAssignmentsChange={setAssignments} />
       ) : (
@@ -256,13 +278,12 @@ function useCharacterAssets() {
 
   useEffect(() => {
     let cancelled = false;
-    const baseUrl = getPluginAssetBaseUrl();
-    fetch(`${baseUrl}agent-pixels-assets.json`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Failed to fetch character index: ${res.status}`);
-        return res.json() as Promise<AssetIndex>;
-      })
-      .then((index) => {
+    getPluginAssetBaseUrl().then(async baseUrl => {
+      const response = await fetch(`${baseUrl}agent-pixels-assets.json`);
+      if (!response.ok) throw new Error(`素材目录读取失败：${response.status}`);
+      return { index: await response.json() as AssetIndex, baseUrl };
+    })
+      .then(({ index, baseUrl }) => {
         if (cancelled) return;
         setAssets(index.characters.map((path, index) => ({ index, path, url: `${baseUrl}${path}` })));
         setError(null);

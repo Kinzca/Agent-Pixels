@@ -1,23 +1,13 @@
 #!/usr/bin/env node
 
 import { build } from "esbuild";
-import { existsSync } from "node:fs";
+import { resolveSdkDist } from "./scripts/sdk.mjs";
 import { cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const paperclipSdkRoot = [
-  process.env.PAPERCLIP_SDK_DIST,
-  path.resolve(root, "../../packages/plugins/sdk/dist"),
-  "/home/garratt/dev/4_repos/paperclip/packages/plugins/sdk/dist",
-].find((candidate) => candidate && existsSync(path.join(candidate, "index.js")));
-
-if (!paperclipSdkRoot) {
-  throw new Error(
-    "Could not find @paperclipai/plugin-sdk dist. Set PAPERCLIP_SDK_DIST=/path/to/paperclip/packages/plugins/sdk/dist",
-  );
-}
+const paperclipSdkRoot = resolveSdkDist();
 
 const paperclipSdkAlias = {
   name: "paperclip-sdk-alias",
@@ -122,7 +112,7 @@ await build({
   outfile: path.join(root, "dist/worker.js"),
   external: ["node:*"],
   plugins: [paperclipSdkAlias],
-  sourcemap: true,
+  sourcemap: false,
 });
 
 await build({
@@ -134,7 +124,7 @@ await build({
   outfile: path.join(root, "dist/ui/index.js"),
   jsx: "automatic",
   external: ["react", "react/jsx-runtime", "@paperclipai/plugin-sdk/ui", "@paperclipai/plugin-sdk"],
-  sourcemap: true,
+  sourcemap: false,
 });
 
 await build({

@@ -1,3 +1,4 @@
+import { PLUGIN_ID } from "../manifest.js";
 import { setFloorSprites } from "../office/floorTiles.js";
 import { buildDynamicCatalog } from "../office/layout/furnitureCatalog.js";
 import { setCharacterTemplates } from "../office/sprites/spriteData.js";
@@ -248,16 +249,19 @@ function recolorLayout(layout: OfficeLayout, floorColor: NonNullable<OfficeLayou
   };
 }
 
-export function getPluginAssetBaseUrl(): string {
+let assetBasePromise: Promise<string> | null = null;
+export async function getPluginAssetBaseUrl(): Promise<string> {
   const metaUrl = import.meta.url;
-  if (metaUrl && !metaUrl.startsWith("blob:")) {
-    return new URL("./assets/", metaUrl).toString();
-  }
-
-  const pluginMatch = window.location.pathname.match(/\/_plugins\/[^/]+\/ui\//);
-  if (pluginMatch) return `${pluginMatch[0]}assets/`;
-
-  return "/_plugins/agent-pixels.camera/ui/assets/";
+  if (metaUrl && !metaUrl.startsWith('blob:')) return new URL('./assets/', metaUrl).toString();
+  // 宿主用 blob 加载 UI；从原生注册表取得安装 UUID，不能用 manifest key 代替。
+  assetBasePromise ??= fetch('/api/plugins/ui-contributions', { credentials: 'same-origin' }).then(async response => {
+    if (!response.ok) throw new Error(`读取插件注册表失败：${response.status}`);
+    const entries = await response.json() as Array<{ pluginKey: string; pluginId: string }>;
+    const installed = entries.find(entry => entry.pluginKey === PLUGIN_ID);
+    if (!installed || !/^[a-zA-Z0-9-]+$/.test(installed.pluginId)) throw new Error('找不到当前插件的安装标识');
+    return `/_plugins/${installed.pluginId}/ui/assets/`;
+  }).catch(error => { assetBasePromise = null; throw error; });
+  return assetBasePromise;
 }
 
 function rgbaToHex(r: number, g: number, b: number, a: number): string {
@@ -339,7 +343,7 @@ async function decodeFurniture(baseUrl: string, index: AssetIndex): Promise<Reco
 
 export function loadPixelAssets(): Promise<LoadedPixelAssets> {
   loadPromise ??= (async () => {
-    const baseUrl = getPluginAssetBaseUrl();
+    const baseUrl = await getPluginAssetBaseUrl();
     const indexUrl = `${baseUrl}agent-pixels-assets.json`;
     const index = (await fetch(indexUrl).then((res) => res.json())) as AssetIndex;
 
@@ -378,5 +382,5 @@ export function loadPixelAssets(): Promise<LoadedPixelAssets> {
     };
   })();
 
-  return loadPromise;
+  return loadPromise.catch(error => { loadPromise = null; throw error; });
 }
