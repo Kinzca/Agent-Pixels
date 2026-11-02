@@ -20,7 +20,35 @@ export const OFFICE_STYLES = `
 .ap-office-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:18px}
 .ap-office-task-picker{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
 .ap-office-field-label{color:var(--muted-foreground);white-space:nowrap;font-size:12px}
-.ap-office-select{width:min(100%,440px);min-width:0;height:34px;padding:0 30px 0 10px;border:1px solid var(--border);border-radius:6px;color:var(--foreground);background:var(--background);font:inherit;cursor:pointer}
+ .ap-office-picker{position:relative;width:min(100%,480px);min-width:0}
+.ap-office .ap-office-picker-trigger{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:8px 11px;border:1px solid var(--border);border-radius:7px;background:var(--background);color:var(--foreground);text-align:left;font-size:12px}
+.ap-office-picker-trigger:hover,.ap-office-picker-trigger[aria-expanded="true"]{background:var(--accent,var(--muted))}
+.ap-office-picker-symbol{display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;color:var(--muted-foreground)}
+.ap-office-picker-value{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
+.ap-office-picker-trigger-hint{color:var(--muted-foreground);font-size:11px}
+.ap-office-picker-current-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted-foreground);font-size:12px;min-width:0}
+.ap-office-picker-id{font-size:11px;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ap-office-picker-chevron{display:flex;flex:0 0 16px;color:var(--muted-foreground)}
+.ap-office-picker-panel{position:absolute;top:calc(100% + 7px);left:0;z-index:50;display:flex;flex-direction:column;width:100%;max-height:min(480px,65vh);overflow:hidden;border:1px solid var(--border);border-radius:10px;background:var(--popover,var(--card,var(--background)));color:var(--popover-foreground,var(--foreground));box-shadow:0 12px 32px rgb(0 0 0/.18),0 2px 8px rgb(0 0 0/.08)}
+.ap-office-picker-search{display:flex;align-items:center;gap:9px;flex:0 0 auto;padding:12px 14px;border-bottom:1px solid var(--border);color:var(--muted-foreground)}
+.ap-office-picker-search svg{flex:0 0 16px}
+.ap-office .ap-office-picker-search input{width:100%;min-width:0;border:0;outline:none;padding:0;background:transparent;color:var(--foreground);font:inherit;font-size:12px;box-shadow:none}
+.ap-office-picker-search input::placeholder{color:var(--muted-foreground)}
+.ap-office-picker-search kbd{padding:1px 4px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:10px;color:var(--muted-foreground)}
+.ap-office-picker-list{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:5px;scrollbar-width:thin}
+.ap-office .ap-office-picker-option{display:flex;align-items:center;gap:9px;width:100%;padding:10px;border:0;border-radius:6px;background:transparent;color:inherit;text-align:left}
+.ap-office-picker-option[data-active="true"]{background:var(--accent,var(--muted))}
+.ap-office-picker-copy{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.ap-office-picker-option-title{font-size:12px;font-weight:500}
+.ap-office-picker-description{font-size:11px;line-height:1.5;color:var(--muted-foreground)}
+.ap-office-picker-check{display:flex;align-items:center;justify-content:center;width:16px;flex:0 0 16px;color:var(--foreground)}
+.ap-office-picker-section{display:flex;justify-content:space-between;margin:5px 9px 2px;padding:10px 0 4px;border-top:1px solid var(--border);font-size:10px;color:var(--muted-foreground)}
+.ap-office-picker-task-meta{display:flex;align-items:center;gap:8px}
+.ap-office-picker-task-status{font-size:10px;color:var(--muted-foreground)}
+.ap-office-picker-task-status[data-status="in_progress"],.ap-office-picker-task-status[data-status="in_review"]{color:var(--foreground)}
+.ap-office-picker-task-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;font-size:12px;line-height:1.6}
+.ap-office-picker-empty{padding:24px 12px;text-align:center;font-size:12px;color:var(--muted-foreground)}
+.ap-office-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;border-top:1px solid var(--border);font-size:10px;color:var(--muted-foreground)}
 .ap-office-workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
 .ap-office-scene{min-width:0;overflow:hidden;border:1px solid var(--border);border-radius:10px;background:var(--card,var(--background))}
 .ap-office-scene-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--border)}
@@ -83,5 +111,5 @@ export const OFFICE_STYLES = `
 .ap-office-notice{margin-bottom:16px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;color:var(--muted-foreground);background:var(--muted);font-size:12px}
 .ap-office-character-grid{display:grid;grid-template-columns:180px minmax(0,1fr);gap:16px;align-items:start}
 @container (min-width:960px){.ap-office-workspace{grid-template-columns:minmax(0,1fr) 320px}.ap-office-inspector{position:sticky;top:16px;max-height:calc(100vh - 110px);overflow:auto;scrollbar-width:thin}}
-@container (max-width:560px){.ap-office-heading{gap:12px}.ap-office-brand{display:none}.ap-office h1{font-size:20px}.ap-office-task-picker{align-items:flex-start;flex-direction:column;gap:6px}.ap-office-select{width:100%}.ap-office-character-grid{grid-template-columns:1fr}.ap-office-camera{height:430px}.ap-office-scene-head{align-items:flex-start}.ap-office-controls{gap:6px}}
+@container (max-width:560px){.ap-office-heading{gap:12px}.ap-office-brand{display:none}.ap-office h1{font-size:20px}.ap-office-task-picker{align-items:flex-start;flex-direction:column;gap:6px}.ap-office-picker{width:100%}.ap-office-picker-trigger-hint{display:none}.ap-office-picker-footer span:last-child{display:none}.ap-office-character-grid{grid-template-columns:1fr}.ap-office-camera{height:430px}.ap-office-scene-head{align-items:flex-start}.ap-office-controls{gap:6px}}
 `;

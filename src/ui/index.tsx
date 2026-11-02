@@ -143,7 +143,7 @@ export function AgentPixelsCameraPage() {
         </div>
       </header>
       <div className="ap-office-toolbar">
-        <WorkflowTaskPicker data={data} issueId={issueId} onSelect={setIssueId} />
+        <WorkflowTaskPicker key={companyId ?? "instance"} data={data} issueId={issueId} onSelect={setIssueId} />
       </div>
       <div className="ap-office-workspace">
         <section className="ap-office-scene" aria-label="办公室现场">

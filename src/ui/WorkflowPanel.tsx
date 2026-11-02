@@ -16,17 +16,7 @@ const agentStatuses: Record<string, string> = { idle: '空闲', running: '运行
 const phases = [['execution', '执行'], ['review', '审查'], ['rework', '返修'], ['rereview', '复审']] as const;
 const time = (value?: string | null) => value ? new Date(value).toLocaleTimeString() : '—';
 
-export function WorkflowTaskPicker({ data, issueId, onSelect }: {
-  data: WorkflowSnapshot | null; issueId: string; onSelect: (id: string) => void;
-}) {
-  return <label className="ap-office-task-picker">
-    <span className="ap-office-field-label">核查任务</span>
-    <select className="ap-office-select" aria-label="核查任务" value={issueId} onChange={e => onSelect(e.target.value)}>
-      <option value="">自动跟随进行中的任务</option>
-      {data?.tasks.map(task => <option key={task.id} value={task.id}>{task.identifier} · {task.title}</option>)}
-    </select>
-  </label>;
-}
+export { WorkflowTaskPicker } from './TaskPicker.js';
 
 export function WorkflowPanel({ data, companyPrefix, error, stale }: {
   data: WorkflowSnapshot | null; companyPrefix: string | null; error: string | null; stale: boolean;
