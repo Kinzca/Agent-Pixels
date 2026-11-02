@@ -1,3 +1,4 @@
+import { uiText, useUiLocale } from "./i18n.js";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import type { WorkflowSnapshot } from './WorkflowPanel.js';
 
@@ -19,6 +20,7 @@ function PickerIcon({ kind }: { kind: 'search' | 'follow' | 'task' | 'check' | '
 export function WorkflowTaskPicker({ data, issueId, onSelect }: {
   data: WorkflowSnapshot | null; issueId: string; onSelect: (id: string) => void;
 }) {
+  useUiLocale();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeKey, setActiveKey] = useState(issueId);
@@ -97,43 +99,43 @@ export function WorkflowTaskPicker({ data, issueId, onSelect }: {
   });
 
   return <div className="ap-office-task-picker">
-    <span className="ap-office-field-label" id={`${uid}-label`}>核查任务</span>
+    <span className="ap-office-field-label" id={`${uid}-label`}>{uiText("核查任务")}</span>
     <div className="ap-office-picker" ref={wrapperRef}>
       <button ref={triggerRef} type="button" className="ap-office-picker-trigger" aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? panelId : undefined} aria-labelledby={`${uid}-label ${uid}-value`}
         onClick={() => open ? setOpen(false) : show()}
         onKeyDown={event => { if (event.key === 'ArrowDown') { event.preventDefault(); show(); } }}>
         <span className="ap-office-picker-symbol"><PickerIcon kind={issueId ? 'task' : 'follow'} /></span>
         <span className="ap-office-picker-value" id={`${uid}-value`}>
-          {issueId ? <><span className="ap-office-picker-id">{selected?.identifier ?? '指定任务'}</span><span className="ap-office-picker-current-title">{selected?.title ?? '正在读取任务…'}</span></> : <><span>自动跟随</span><span className="ap-office-picker-trigger-hint">进行中的任务优先</span></>}
+          {issueId ? <><span className="ap-office-picker-id">{selected?.identifier ?? uiText("指定任务")}</span><span className="ap-office-picker-current-title">{selected?.title ?? uiText("正在读取任务…")}</span></> : <><span>{uiText("自动跟随")}</span><span className="ap-office-picker-trigger-hint">{uiText("进行中的任务优先")}</span></>}
         </span>
         <span className="ap-office-picker-chevron"><PickerIcon kind="chevron" /></span>
       </button>
-      {open ? <div id={panelId} className="ap-office-picker-panel" role="dialog" aria-label="选择核查任务" onKeyDown={handleKey}>
+      {open ? <div id={panelId} className="ap-office-picker-panel" role="dialog" aria-label={uiText("选择核查任务")} onKeyDown={handleKey}>
         <div className="ap-office-picker-search">
           <PickerIcon kind="search" />
           <input ref={searchRef} value={query} onChange={event => {
             const text = event.target.value;
             setQuery(text); setActiveKey(text.trim() ? tasks.find(task => matches(task, text))?.id ?? '' : issueId);
-          }} placeholder="搜索任务编号或标题…" aria-label="搜索任务" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls={listId} aria-activedescendant={activeOptionId} autoComplete="off" />
-          <kbd>Esc</kbd>
+          }} placeholder={uiText("搜索任务编号或标题…")} aria-label={uiText("搜索任务")} role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls={listId} aria-activedescendant={activeOptionId} autoComplete="off" />
+          <kbd>{uiText("Esc")}</kbd>
         </div>
-        <div className="ap-office-picker-list" id={listId} role="listbox" aria-label="任务选项" ref={listRef}>
+        <div className="ap-office-picker-list" id={listId} role="listbox" aria-label={uiText("任务选项")} ref={listRef}>
           <button type="button" className="ap-office-picker-option ap-office-picker-follow" {...optionProps('', 0)}>
             <span className="ap-office-picker-symbol"><PickerIcon kind="follow" /></span>
-            <span className="ap-office-picker-copy"><span className="ap-office-picker-option-title">自动跟随</span><span className="ap-office-picker-description">优先显示进行中的任务，空闲时显示最近任务</span></span>
+            <span className="ap-office-picker-copy"><span className="ap-office-picker-option-title">{uiText("自动跟随")}</span><span className="ap-office-picker-description">{uiText("优先显示进行中的任务，空闲时显示最近任务")}</span></span>
             <span className="ap-office-picker-check">{!issueId ? <PickerIcon kind="check" /> : null}</span>
           </button>
-          <div className="ap-office-picker-section" role="presentation">最近任务<span>{visible.length}</span></div>
+          <div className="ap-office-picker-section" role="presentation">{uiText("最近任务")}<span>{visible.length}</span></div>
           {visible.map((task, index) => <button type="button" key={task.id} className="ap-office-picker-option" {...optionProps(task.id, index + 1)}>
             <span className="ap-office-picker-copy">
-              <span className="ap-office-picker-task-meta"><span className="ap-office-picker-id">{task.identifier ?? '任务'}</span><span className="ap-office-picker-task-status" data-status={task.status}>{statusNames[task.status] ?? task.status}</span></span>
+              <span className="ap-office-picker-task-meta"><span className="ap-office-picker-id">{task.identifier ?? uiText("任务")}</span><span className="ap-office-picker-task-status" data-status={task.status}>{uiText(statusNames[task.status] ?? task.status)}</span></span>
               <span className="ap-office-picker-task-title" title={task.title}>{task.title}</span>
             </span>
             <span className="ap-office-picker-check">{issueId === task.id ? <PickerIcon kind="check" /> : null}</span>
           </button>)}
-          {!visible.length ? <div className="ap-office-picker-empty">{query.trim() ? '没有找到匹配的任务' : '暂时没有可选择的任务'}</div> : null}
+          {!visible.length ? <div className="ap-office-picker-empty">{query.trim() ? uiText("没有找到匹配的任务") : uiText("暂时没有可选择的任务")}</div> : null}
         </div>
-        <div className="ap-office-picker-footer"><span>↑ ↓ 移动 · Enter 选择</span><span>选中后固定核查该任务</span></div>
+        <div className="ap-office-picker-footer"><span>{uiText("↑ ↓ 移动 · Enter 选择")}</span><span>{uiText("选中后固定核查该任务")}</span></div>
       </div> : null}
     </div>
   </div>;

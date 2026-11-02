@@ -1,3 +1,4 @@
+import { uiText, useUiLocale } from "./i18n.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useHostContext, usePluginData, type PluginSettingsPageProps, type PluginSidebarProps } from "@paperclipai/plugin-sdk/ui";
 import { WorkflowPanel, WorkflowSummary, WorkflowTaskPicker, type WorkflowSnapshot } from "./WorkflowPanel.js";
@@ -66,17 +67,19 @@ function OfficeIcon() {
 }
 
 export function AgentPixelsSidebarLink({ context }: PluginSidebarProps) {
+  useUiLocale();
   const href = cameraPagePath(context.companyPrefix);
   const isActive = typeof window !== 'undefined' && window.location.pathname.startsWith(href);
   return <>
     <style>{OFFICE_STYLES}</style>
     <a href={href} className="ap-office-nav" aria-current={isActive ? 'page' : undefined}>
-      <OfficeIcon /><span>Office</span>
+      <OfficeIcon /><span>{uiText("Office")}</span>
     </a>
   </>;
 }
 
 export function AgentPixelsCameraPage() {
+  const locale = useUiLocale();
   const pageRef = useRef<HTMLElement>(null);
   const { companyId, companyPrefix } = useHostContext();
   const [issueId, setIssueId] = useState('');
@@ -99,8 +102,8 @@ export function AgentPixelsCameraPage() {
   const stale = !data || clock - Date.parse(data.observedAt) > 12000;
   const [assignments, setAssignments] = useState<Record<string, number>>(() => readStoredAssignments(companyId ?? null));
   const agents = useMemo(
-    () => (data?.agents ?? []).map((agent) => ({ ...agent, characterIndex: assignments[agent.id] })),
-    [assignments, data?.agents],
+    () => (data?.agents ?? []).map((agent) => ({ ...agent, workflowLabel: agent.workflowLabel ? uiText(agent.workflowLabel) : undefined, characterIndex: assignments[agent.id] })),
+    [assignments, data?.agents, locale],
   );
   const [camera, setCamera] = useState<CameraId>("office");
   const [view, setView] = useState<"camera" | "characters">("camera");
@@ -130,31 +133,31 @@ export function AgentPixelsCameraPage() {
   const roomName = camera === 'office' ? '办公室与休息区' : camera === 'boardroomKitchen' ? '会议室与茶水间' : '扩展办公室';
 
   return (
-    <main ref={pageRef} className="ap-office" aria-label="Office">
+    <main ref={pageRef} className="ap-office" aria-label={uiText("Office")}>
       <style>{OFFICE_STYLES}</style>
       <div className="ap-office-toolbar">
         <WorkflowTaskPicker key={companyId ?? "instance"} data={data} issueId={issueId} onSelect={setIssueId} />
         <div className="ap-office-sync" data-tone={error || stale ? 'warning' : 'ok'}>
-          <span className="ap-office-dot" aria-hidden="true" />{syncLabel}
-          <time dateTime={data?.observedAt}>上次读取 {readTime}</time>
+          <span className="ap-office-dot" aria-hidden="true" />{uiText(syncLabel)}
+          <time dateTime={data?.observedAt}>{uiText("上次读取 ")}{readTime}</time>
         </div>
       </div>
       <WorkflowSummary data={data} companyPrefix={companyPrefix} error={error?.message ?? null} stale={stale} />
       <div className="ap-office-workspace">
-        <section className="ap-office-scene" aria-label="办公室现场">
+        <section className="ap-office-scene" aria-label={uiText("办公室现场")}>
           <header className="ap-office-scene-head">
-            <div className="ap-office-scene-name"><OfficeIcon />{view === 'characters' ? '角色设置' : roomName}</div>
+            <div className="ap-office-scene-name"><OfficeIcon />{view === 'characters' ? uiText("角色设置") : uiText(roomName)}</div>
             <div className="ap-office-controls">
-              <div className="ap-office-segments" aria-label="办公室视角">
+              <div className="ap-office-segments" aria-label={uiText("办公室视角")}>
                 {([['office', '办公室'], ['boardroomKitchen', '会议室'], ['overflowOffice', '扩展区']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={view === 'camera' && camera === id} onClick={() => { setView('camera'); setCamera(id); }}>{label}</button>)}
               </div>
-              <button className="ap-office-quiet-button" type="button" aria-pressed={view === 'characters'} onClick={() => setView(view === 'characters' ? 'camera' : 'characters')}>角色</button>
+              <button className="ap-office-quiet-button" type="button" aria-pressed={view === 'characters'} onClick={() => setView(view === 'characters' ? 'camera' : 'characters')}>{uiText("角色")}</button>
             </div>
           </header>
-          {view === 'characters' ? <CharacterAssignmentsPanel companyId={companyId ?? null} assignments={assignments} onAssignmentsChange={setAssignments} /> : <div className="ap-office-camera" aria-label="Agent Pixels office camera">
+          {view === 'characters' ? <CharacterAssignmentsPanel companyId={companyId ?? null} assignments={assignments} onAssignmentsChange={setAssignments} /> : <div className="ap-office-camera" aria-label={uiText("Agent Pixels office camera")}>
             <PixelOfficeCanvas camera={camera} agents={agents} />
           </div>}
-          <footer className="ap-office-scene-foot"><span>{agents.length} 位 Agent · {view === 'characters' ? '角色分配' : '团队现场'}</span><span>当前任务状态见上方摘要</span></footer>
+          <footer className="ap-office-scene-foot"><span>{agents.length}{uiText(" 位 Agent · ")}{view === 'characters' ? uiText("角色分配") : uiText("团队现场")}</span><span>{uiText("当前任务状态见上方摘要")}</span></footer>
         </section>
         <WorkflowPanel data={data} companyPrefix={companyPrefix} error={error?.message ?? null} stale={stale} />
       </div>
@@ -216,6 +219,7 @@ function CharacterAssignmentsPanel({
   assignments?: Record<string, number>;
   onAssignmentsChange?: (assignments: Record<string, number>) => void;
 }) {
+  useUiLocale();
   const { data, loading, error, refresh } = usePluginData<CharacterSettingsData>("character-settings", companyId ? { companyId } : {});
   const { assets, error: assetError } = useCharacterAssets();
   const [savingAgentId, setSavingAgentId] = useState<string | null>(null);
@@ -251,8 +255,8 @@ function CharacterAssignmentsPanel({
     }
   }
 
-  if (loading) return <div className="ap-office-empty">正在读取角色设置…</div>;
-  if (error) return <div style={{ padding: 24, fontSize: 13 }}>读取角色设置失败：{error.message}</div>;
+  if (loading) return <div className="ap-office-empty">{uiText("正在读取角色设置…")}</div>;
+  if (error) return <div style={{ padding: 24, fontSize: 13 }}>{uiText("读取角色设置失败：")}{error.message}</div>;
 
   function randomIndex(): number | null {
     if (assets.length === 0) return null;
@@ -268,7 +272,7 @@ function CharacterAssignmentsPanel({
 
       <div className="ap-office-character-grid">
         <aside style={{ border: "1px solid var(--border)", borderRadius: 6, overflow: "hidden", background: "var(--card)" }}>
-          <div style={{ padding: "12px", fontSize: "18px", fontWeight: 800, borderBottom: "1px solid var(--border)" }}>团队成员</div>
+          <div style={{ padding: "12px", fontSize: "18px", fontWeight: 800, borderBottom: "1px solid var(--border)" }}>{uiText("团队成员")}</div>
           <div style={{ maxHeight: "610px", overflow: "auto" }}>
             {agents.map((agent) => {
               const assigned = storedAssignments[agent.id];
@@ -298,10 +302,10 @@ function CharacterAssignmentsPanel({
                     <span style={{ display: "block", fontSize: "13px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {agent.name}
                     </span>
-                    <span style={{ display: "block", fontSize: "11px", opacity: 0.65 }}>{assignedAsset ? `char_${assigned}` : "自动"}</span>
+                    <span style={{ display: "block", fontSize: "11px", opacity: 0.65 }}>{assignedAsset ? uiText("char_{{value0}}", { value0: String(assigned) }) : uiText("自动")}</span>
                   </span>
                   <span style={{ width: 36, height: 48, display: "grid", placeItems: "center", background: "var(--muted)", borderRadius: 4 }}>
-                    {assignedAsset ? <SpritePreview url={assignedAsset.url} scale={1.5} /> : <span style={{ fontSize: 10, opacity: 0.65 }}>Auto</span>}
+                    {assignedAsset ? <SpritePreview url={assignedAsset.url} scale={1.5} /> : <span style={{ fontSize: 10, opacity: 0.65 }}>{uiText("Auto")}</span>}
                   </span>
                 </button>
               );
@@ -313,10 +317,10 @@ function CharacterAssignmentsPanel({
           <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: "15px", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {selectedAgent?.name ?? "暂无 Agent"}
+                {selectedAgent?.name ?? uiText("暂无 Agent")}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.7 }}>
-                {visibleIndex !== undefined && visibleIndex !== null ? `已选择角色 ${visibleIndex}` : "自动分配角色"}
+                {visibleIndex !== undefined && visibleIndex !== null ? uiText("已选择角色 {{value0}}", { value0: String(visibleIndex) }) : uiText("自动分配角色")}
               </div>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -326,9 +330,7 @@ function CharacterAssignmentsPanel({
                   disabled={savingAgentId === selectedAgent.id || draftIndex === null}
                   onClick={() => void updateAssignment(selectedAgent.id, draftIndex)}
                   style={{ padding: "7px 10px", borderRadius: 4, border: "1px solid var(--border)", background: "var(--accent)", color: "inherit", cursor: draftIndex === null ? "default" : "pointer" }}
-                >
-                  保存
-                </button>
+                >{uiText("保存")}</button>
               ) : null}
               {selectedAgent ? (
                 <button
@@ -339,9 +341,7 @@ function CharacterAssignmentsPanel({
                     if (next !== null) setDraftIndex(next);
                   }}
                   style={{ padding: "7px 10px", borderRadius: 4, border: "1px solid var(--border)", background: "transparent", color: "inherit", cursor: "pointer" }}
-                >
-                  随机
-                </button>
+                >{uiText("随机")}</button>
               ) : null}
               {selectedAgent && selectedIndex !== undefined ? (
               <button
@@ -349,9 +349,7 @@ function CharacterAssignmentsPanel({
                 disabled={savingAgentId === selectedAgent.id}
                 onClick={() => void updateAssignment(selectedAgent.id, null)}
                 style={{ padding: "7px 10px", borderRadius: 4, border: "1px solid var(--border)", background: "transparent", color: "inherit", cursor: "pointer" }}
-              >
-                重置
-              </button>
+              >{uiText("重置")}</button>
               ) : null}
             </div>
           </div>
